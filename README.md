@@ -200,7 +200,3 @@ References
 • [1] Aikido. (n.d.). 9 Common Docker Container Security Vulnerabilities & Fixes. Retrieved from https://www.aikido.dev/blog/docker-container-security-vulnerabilities <br/>
 • [2] Aqua Security. (n.d.). Trivy Documentation. Retrieved from https://aquasecurity.github.io/trivy/v0.49/<br/>
 • [3] Docker. (n.d.). Docker Security. Retrieved from https://docs.docker.com/engine/security/<br/>
-
-
-
-Sent from Proton Mail for iOS.
