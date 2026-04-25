@@ -1,14 +1,41 @@
+# --- Stage 1: Builder ---
+# We use a build stage to install dependencies. 
+# This keeps build tools out of our final production image.
 FROM python:3.11-alpine AS builder
 
+WORKDIR /app
+
+# Install build dependencies (if your requirements need C-extensions, add them here)
+# --no-cache-dir keeps the image slim
+COPY python/requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# --- Stage 2: Final/Production ---
+# We start fresh with a tiny image and only copy what is necessary.
+FROM python:3.11-alpine
+
+# 1. Security: Create a non-privileged system user
+# UID/GID 10001 is a common convention for non-root app users
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY app.py .
 
+# 2. Security: Only copy the installed packages from the builder stage
+# We copy them into the appuser's local site-packages
+COPY --from=builder /root/.local /home/appuser/.local
+COPY python/app.py .
+
+# 3. Security: Ensure the app directory is owned by our non-root user
+RUN chown -R appuser:appgroup /app
+
+# Update PATH so the OS can find the installed Flask/dependencies
+ENV PATH=/home/appuser/.local/bin:$PATH
+
+# 4. Security: Switch away from ROOT
 USER appuser
 
+# Documentation: Tells the user/orchestrator which port the app listens on
 EXPOSE 5000
 
+# Use the full path or ensure PATH is set for the executable
 CMD ["python", "app.py"]
